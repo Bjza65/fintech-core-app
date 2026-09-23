@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "esnext",
+    "types": ["node"],
+
+    "strict": true,                         // Habilita toda la familia de checks estrictos
+    "noImplicitAny": true,                  // Prohíbe el uso de variables sin tipo definido explícitamente
+    "strictNullChecks": true,               // Evita que null/undefined se oculte bajo otros tipos
+    "strictPropertyInitialization": true,   // Obliga a inicializar clases en el constructor
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"]
+}
