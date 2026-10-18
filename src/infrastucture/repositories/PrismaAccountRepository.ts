@@ -1,25 +1,53 @@
 import { Account } from "../../domain/entities/Account";
 import { AccountRepository } from "../../domain/repositories/Repositories";
 import { PrismaClient } from "../../generated/prisma/client";
+import { AccountMapper } from "../mappers/AccountMapper";
 
 export class PrismaAccountRepository implements AccountRepository {
     
     constructor(private readonly prisma: PrismaClient) {}
     
-    save(account: Account): Promise<Account> {
-        throw new Error("Method not implemented.");
+    async save(account: Account): Promise<Account> {
+        const data = AccountMapper.toPersistence(account);
+
+        const prismaAccount = await this.prisma.account.upsert({
+            where: {id: data.id},
+            update: {
+                balanceAcc: data.balanceAcc,
+                accountStatus: data.accountStatus
+            },
+            create: data
+        });
+
+        return AccountMapper.toDomain(prismaAccount);
     }
     
     async findById(id: string): Promise<Account | null> {
-        
+        const prismaAccount = await this.prisma.account.findUnique({
+            where: {id}
+        });
+
+        if(!prismaAccount) return null;
+
+        return AccountMapper.toDomain(prismaAccount);
     }
     
-    findByAccountNumber(accountNumber: string): Promise<Account | null> {
-        throw new Error("Method not implemented.");
+    async findByAccountNumber(accountNumber: string): Promise<Account | null> {
+        const prismaAccount = await this.prisma.account.findUnique({
+            where: {accountNumber}
+        });
+
+        if(!prismaAccount) return null;
+
+        return AccountMapper.toDomain(prismaAccount);
     }
     
-    findByUserId(userId: string): Promise<Account[]> {
-        throw new Error("Method not implemented.");
+    async findByUserId(userId: string): Promise<Account[]> {
+        const prismaAccounts = await this.prisma.account.findMany({
+            where: {userId}
+        });
+
+        return prismaAccounts.map(AccountMapper.toDomain);
     }
 
 } //clase 4 - 1hr 19min
