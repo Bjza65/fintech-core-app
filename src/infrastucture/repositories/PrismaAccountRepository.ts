@@ -50,4 +50,4 @@ export class PrismaAccountRepository implements AccountRepository {
         return prismaAccounts.map(AccountMapper.toDomain);
     }
 
-} //pending tasks: 1. create UserMapper 2. create Prisma transaction repository and user repository //?
+} //pending tasks: 1. create UserMapper and repository //?
