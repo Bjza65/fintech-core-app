@@ -14,6 +14,8 @@ export interface AccountRepository{
     findByAccountNumber(accountNumber: string): Promise<Account | null>;
     findByUserId(userId: string): Promise<Account[]>
     executeTransaction(transaction: Transaction): Promise<Transaction>;
+    freeze(account: Account): Promise<void>;
+    unfreeze(account: Account): Promise<void>;
 }
 
 export interface TransactionRepository{
