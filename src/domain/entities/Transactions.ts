@@ -2,7 +2,7 @@ import Decimal from "decimal.js";
 import { InvalidPropValueError } from "../exceptions/DomainError";
 
 export interface TransactionProps {
-    id: string;
+    id?: string;
     amount: Decimal;
     status: TransactionStatus;
     description: string;
@@ -25,7 +25,7 @@ export abstract class Transaction {
     }
 
     //Getters
-    get id(): string {return this.props.id;} 
+    get id(): string {return this.props.id?? '';} 
     get amount(): Decimal{return this.props.amount;}
     get status(): TransactionStatus{return this.props.status;}
     get description(): string{return this.props.description;}

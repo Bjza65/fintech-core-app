@@ -1,7 +1,9 @@
 import { Account } from "../../domain/entities/Account";
+import { Deposit, Transaction, Transfer, Withdrawal } from "../../domain/entities/Transactions";
 import { AccountRepository } from "../../domain/repositories/Repositories";
 import { PrismaClient } from "../../generated/prisma/client";
 import { AccountMapper } from "../mappers/AccountMapper";
+import { TransactionMapper } from "../mappers/TransactionMapper";
 
 export class PrismaAccountRepository implements AccountRepository {
     
@@ -50,4 +52,46 @@ export class PrismaAccountRepository implements AccountRepository {
         return prismaAccounts.map(AccountMapper.toDomain);
     }
 
-} //pending tasks: 1. create UserMapper and repository //?
+    async executeTransaction(transaction: Transaction): Promise<Transaction> {
+
+        return await this.prisma.$transaction(async (tx) => {
+            if ((transaction instanceof Transfer || transaction instanceof Withdrawal)
+                && transaction.sourceAccount) {
+                await tx.account.update({
+                where: { id: transaction.sourceAccount },
+                data: { balance: { decrement: transaction.amount.toNumber() } },
+                });
+            }
+
+            if ((transaction instanceof Transfer || transaction instanceof Deposit)
+                && transaction.destinationAccount) {
+                await tx.account.update({
+                where: { id: transaction.destinationAccount },
+                data: { balance: { increment: transaction.amount.toNumber() } },
+                });
+            }
+
+            transaction.markAsCompleted();
+        
+            const transactionRecord = await tx.transaction.create({
+                data: TransactionMapper.toPersistence(transaction),
+            });
+
+            return TransactionMapper.toDomain(transactionRecord);
+        });
+    }
+
+    async freeze(account: Account): Promise<void> {
+        await this.prisma.account.update({
+        where: { id: account.id },
+        data: { status: 'FROZEN' },
+        });
+    }
+
+    async unfreeze(account: Account): Promise<void> {
+        await this.prisma.account.update({
+        where: { id: account.id },
+        data: { status: 'ACTIVE' },
+        });
+    }
+} 
