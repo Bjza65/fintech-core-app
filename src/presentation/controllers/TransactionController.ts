@@ -15,7 +15,7 @@ export class TransactionController {
 
   transfer = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await this.transferMoneyUseCase.execute(req.body);
+      const result = await this.transferMoneyUseCase.execute(req.body, req.user!.userId);
 
       res.status(201).json({
         status: 'success',
@@ -29,7 +29,10 @@ export class TransactionController {
 
   deposit = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await this.depositUseCase.execute(req.body);
+      const result = await this.depositUseCase.execute(
+      req.body,
+      req.user!.userId
+      );
 
       res.status(201).json({
         status: 'success',
@@ -43,7 +46,10 @@ export class TransactionController {
 
   withdrawal = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await this.withdrawalUseCase.execute(req.body);
+      const result = await this.withdrawalUseCase.execute(
+        req.body,
+        req.user!.userId
+      );
 
       res.status(201).json({
         status: 'success',

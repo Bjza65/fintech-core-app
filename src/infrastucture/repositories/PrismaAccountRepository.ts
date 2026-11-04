@@ -59,7 +59,7 @@ export class PrismaAccountRepository implements AccountRepository {
                 && transaction.sourceAccount) {
                 await tx.account.update({
                 where: { id: transaction.sourceAccount },
-                data: { balance: { decrement: transaction.amount.toNumber() } },
+                data: { balanceAcc: {decrement: transaction.amount.toString() } },
                 });
             }
 
@@ -67,7 +67,7 @@ export class PrismaAccountRepository implements AccountRepository {
                 && transaction.destinationAccount) {
                 await tx.account.update({
                 where: { id: transaction.destinationAccount },
-                data: { balance: { increment: transaction.amount.toNumber() } },
+                data: { balanceAcc: {increment: transaction.amount.toString() } },
                 });
             }
 

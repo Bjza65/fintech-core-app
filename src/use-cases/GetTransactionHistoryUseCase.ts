@@ -11,6 +11,10 @@ export class GetTransactionHistoryUseCase {
     return {
       accountId: input.accountId,
       transactions: transactions.map((transaction: Transaction) => {
+
+        if (!transaction.id) {
+          throw new Error("La transacción no tiene un identificador válido");
+        }
         const type = transaction instanceof Deposit
           ? 'DEPOSIT'
           : transaction instanceof Withdrawal

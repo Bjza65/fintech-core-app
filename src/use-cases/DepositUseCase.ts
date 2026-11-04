@@ -1,37 +1,58 @@
+
 import { AccountRepository } from "../domain/repositories/Repositories";
-import { InvalidAmountError, AccountNotFoundError, AccountFrozenError } from "../domain/exceptions/FinancialErrors";
+import {InvalidAmountError,AccountNotFoundError,AccountFrozenError} from "../domain/exceptions/FinancialErrors";
 import { DepositInputDTO, DepositOutputDTO } from "./dto/DepositDTOs";
 import { Decimal } from "decimal.js";
+import { Deposit } from "../domain/entities/Transactions";
 
 export class DepositUseCase {
-  constructor(private readonly accountRepository: AccountRepository) { }
 
-  async execute(input: DepositInputDTO): Promise<DepositOutputDTO> {
-    const { accountId, amount } = input;
+    constructor(private readonly accountRepository: AccountRepository) {}
 
-    if (amount <= 0) {
-      throw new InvalidAmountError("El monto a depositar debe ser un valor positivo.");
-    }
+    async execute(input: DepositInputDTO, userId: string): Promise<DepositOutputDTO> {
 
-    const depositAmount = new Decimal(amount);
+        const { accountId, amount } = input;
 
-    const account = await this.accountRepository.findById(accountId);
-    if (!account) {
-      throw new AccountNotFoundError(accountId);
-    }
+        if (amount <= 0) {
+            throw new InvalidAmountError("El monto a depositar debe ser positivo.");
+        }
 
-    if (account.accountStatus === "FROZEN") {
-      throw new AccountFrozenError(accountId);
-    }
+        const account = await this.accountRepository.findById(accountId);
 
-    account.deposit(depositAmount);
+        if (!account || account.userid !== userId) {
+            throw new AccountNotFoundError(accountId);
+        }
 
-    const updatedAccount = await this.accountRepository.save(account);
+        if (account.accountStatus === "FROZEN") {
+            throw new AccountFrozenError(accountId);
+        }
 
-    return {
-      accountId: updatedAccount.id!,
-      newBalance: updatedAccount.balanceAcc.toNumber(),
-      depositedAt: new Date(),
-    };
-  }
+        const depositTransaction = Deposit.create({
+            amount: new Decimal(amount),
+            status: "PENDING",
+            description: `Depósito en cuenta ${account.accountNumber}`,
+            createdAt: new Date(),
+            destinationAccountId: accountId
+        });
+
+        const savedTransaction = await this.accountRepository.executeTransaction(
+            depositTransaction
+        );
+
+        const updatedAccount = await this.accountRepository.findById(accountId);
+
+        if (!updatedAccount) {
+            throw new AccountNotFoundError(accountId);
+        }
+
+        if (!updatedAccount.id) {
+          throw new Error("La cuenta no tiene un identificador válido");
+          }
+
+        return {
+            accountId: updatedAccount.id,
+            newBalance: updatedAccount.balanceAcc.toNumber(),
+            depositedAt: savedTransaction.createdAt
+};
+}
 }

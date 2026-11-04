@@ -8,7 +8,7 @@ import { Transfer } from "../domain/entities/Transactions";
 export class TransferMoneyUseCase {
     constructor(private readonly accountRepository: AccountRepository){}
 
-    async execute(input: TransferMoneyInput): Promise<TransferMoneyOutput> {
+    async execute(input: TransferMoneyInput, userId: string): Promise<TransferMoneyOutput> {
         const { sourceAccountId, destinationAccountId, amount } = input;
 
         if (amount <= 0) {
@@ -22,7 +22,7 @@ export class TransferMoneyUseCase {
         const transferAmount = new Decimal(amount);
 
         const sourceAccount = await this.accountRepository.findById(sourceAccountId);
-        if (!sourceAccount) {
+        if (!sourceAccount || sourceAccount.userid !== userId) {
             throw new AccountNotFoundError(sourceAccountId);
         }
 

@@ -1,4 +1,3 @@
-import { error } from "node:console";
 import { Deposit, Transaction, Withdrawal, Transfer } from "../../domain/entities/Transactions";
 import { Transaction as PrismaTransaction, Prisma, TransactionType} from "../../generated/prisma/client";
 
@@ -69,7 +68,7 @@ export class TransactionMapper {
         }
         
         return {
-            id: transaction.id,
+            ...(transaction.id ? { id: transaction.id } : {}),
             amount: transaction.amount,
             description: transaction.description,
             type,

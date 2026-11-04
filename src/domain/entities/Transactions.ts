@@ -25,7 +25,7 @@ export abstract class Transaction {
     }
 
     //Getters
-    get id(): string {return this.props.id?? '';} 
+    get id(): string | undefined {return this.props.id;} 
     get amount(): Decimal{return this.props.amount;}
     get status(): TransactionStatus{return this.props.status;}
     get description(): string{return this.props.description;}
