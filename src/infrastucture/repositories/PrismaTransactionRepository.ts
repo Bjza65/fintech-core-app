@@ -3,7 +3,7 @@ import { TransactionRepository } from "../../domain/repositories/Repositories";
 import { PrismaClient } from "../../generated/prisma/client";
 import { TransactionMapper } from "../mappers/TransactionMapper";
 
-export class PrismaTransactionReposiroty implements TransactionRepository{
+export class PrismaTransactionRepository implements TransactionRepository{
     
     constructor(private readonly prisma: PrismaClient){}
 

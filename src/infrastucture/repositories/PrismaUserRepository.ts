@@ -28,7 +28,7 @@ export class PrismaUserRepository implements UserRepository {
 
     async save(user: User): Promise<User> {
         const saved = await this.prisma.user.upsert({
-            where:{ id: user.id, email: user.email },
+            where:{ email: user.email },
             update: {
                 email: user.email,
                 passwordHash: user.passwordHash,
