@@ -43,6 +43,14 @@ export const createApp = (): Application => {
   app.use(cors());
   app.use(express.json());
 
+  app.get('/health', (_req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      service: 'fintech-core-api',
+      timestamp: new Date().toISOString(),
+      });
+      });
+
   // 1. Instanciación de Base de datos (Capa de Infraestructura)
   const prisma = new PrismaClient({
     adapter: new PrismaPg({

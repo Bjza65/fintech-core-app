@@ -42,6 +42,13 @@ const createApp = () => {
     // Middlewares globales de Express
     app.use((0, cors_1.default)());
     app.use(express_1.default.json());
+    app.get('/health', (_req, res) => {
+        res.status(200).json({
+            status: 'ok',
+            service: 'fintech-core-api',
+            timestamp: new Date().toISOString(),
+        });
+    });
     // 1. Instanciación de Base de datos (Capa de Infraestructura)
     const prisma = new client_1.PrismaClient({
         adapter: new adapter_pg_1.PrismaPg({
