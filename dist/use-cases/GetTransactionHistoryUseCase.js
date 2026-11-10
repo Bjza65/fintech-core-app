@@ -11,11 +11,11 @@ class GetTransactionHistoryUseCase {
         this.accountRepository = accountRepository;
     }
     async execute(input, userId) {
-        const transactions = await this.transactionRepository.findByAccountId(input.accountId);
         const account = await this.accountRepository.findById(input.accountId);
         if (!account || account.userid !== userId) {
             throw new FinancialErrors_1.AccountNotFoundError(input.accountId);
         }
+        const transactions = await this.transactionRepository.findByAccountId(input.accountId);
         return {
             accountId: input.accountId,
             transactions: transactions.map((transaction) => {

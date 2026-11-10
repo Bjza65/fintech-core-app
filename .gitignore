@@ -6,3 +6,13 @@ node_modules
 .env
 
 # los .env no se envian ya que contienen informacion local. 
+
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+node_modules/
+dist/
+frontend/dist/
+src/generated/prisma/
