@@ -46,7 +46,8 @@ getUserAccounts = async (req: AuthenticatedRequest, res: Response, next: NextFun
   getBalance = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const accountId = Array.isArray(req.params.accountId) ? req.params.accountId[0] : req.params.accountId;
-      const balance = await this.getBalanceUseCase.execute({ accountId });
+      const userId = req.user!.userId;
+      const balance = await this.getBalanceUseCase.execute({ accountId }, userId);
 
       res.status(200).json({
         status: 'success',

@@ -5,10 +5,10 @@ import { AccountOutputDTO, GetBalanceInputDTO } from "./dto/AccountDTOs";
 export class GetBalanceUseCase{
     constructor(private readonly accountRepository: AccountRepository) {}
 
-    async execute(input: GetBalanceInputDTO): Promise<AccountOutputDTO>{
+    async execute(input: GetBalanceInputDTO, userId: string): Promise<AccountOutputDTO>{
         const account = await this.accountRepository.findById(input.accountId);
 
-        if(!account){
+        if(!account || account.userid !== userId){
             throw new AccountNotFoundError(input.accountId);
         }
 

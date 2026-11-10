@@ -7,9 +7,9 @@ class GetBalanceUseCase {
     constructor(accountRepository) {
         this.accountRepository = accountRepository;
     }
-    async execute(input) {
+    async execute(input, userId) {
         const account = await this.accountRepository.findById(input.accountId);
-        if (!account) {
+        if (!account || account.userid !== userId) {
             throw new FinancialErrors_1.AccountNotFoundError(input.accountId);
         }
         return {
