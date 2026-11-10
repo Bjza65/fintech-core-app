@@ -99,6 +99,14 @@ function App() {
   const [operationError, setOperationError] = useState('');
   const [operationLoading, setOperationLoading] = useState(false);
 
+  // ESTADOS DE GESTIÓN DE CUENTAS
+
+  const [accountActionLoading, setAccountActionLoading] =
+    useState<string | null>(null);
+
+  const [accountFeedback, setAccountFeedback] = useState('');
+  const [accountActionError, setAccountActionError] = useState('');
+
   // CONSULTAR CUENTAS DEL USUARIO
   useEffect(() => {
     if (!user) return;
@@ -243,6 +251,61 @@ function App() {
       setCreatingAccount(false);
     }
   };
+
+  const handleRefreshBalance = async (accountId: string) => {
+    const token = localStorage.getItem('fintech_token');
+    if (!token) return;
+
+    setAccountActionLoading(accountId);
+    setAccountActionError('');
+    setAccountFeedback('');
+
+    try {
+      const result = await apiRequest<ApiResponse<Account>>(
+        `/accounts/${accountId}/balance`, { headers: {Authorization: `Bearer ${token}`,},}
+      );
+
+      setAccounts(currentAccounts => 
+        currentAccounts.map(account => account.id === accountId ? { ...account, balance: result.data.balance } : account )
+      );
+
+      setAccountFeedback('Saldo actualizado correctamente.');
+      } 
+      
+    catch (err) { setAccountActionError ( err instanceof Error ? err.message : 'No se pudo consultar el saldo.'); }
+    finally { setAccountActionLoading(null); } 
+  };
+
+  const handleToggleAccountStatus = async (account: Account) => {
+    const token = localStorage.getItem('fintech_token');
+    if (!token) return;
+
+    const action = account.status === 'FROZEN' ? 'unfreeze' : 'freeze';
+    setAccountActionLoading(account.id);
+    setAccountActionError('');
+    setAccountFeedback('');
+
+    try {const result = await apiRequest<{ 
+      status: string; 
+      message: string; 
+    }> ( `/accounts/${account.id}/${action}`, {
+      method: 'PATCH',
+      headers: {Authorization: `Bearer ${token}`,},}
+    );
+    
+    const accountsResult = await apiRequest<ApiResponse<Account[]>>( '/accounts', {
+      headers: { Authorization: `Bearer ${token}`, }, }
+    );
+
+    setAccounts(accountsResult.data || []);
+    setAccountFeedback(result.message);
+    } 
+    
+    catch (err) { 
+      setAccountActionError ( err instanceof Error ? err.message : 'No se pudo actualizar el estado de la cuenta.');}
+      finally { setAccountActionLoading(null); }
+  };
+
 
   // DEPÓSITOS, RETIROS Y TRANSFERENCIAS
   const handleOperation = async (
@@ -535,33 +598,65 @@ function App() {
             </p>
           )}
 
-          <div className="account-grid">
+{accountActionError && (
+  <div className="feedback error">
+    {accountActionError}
+  </div>
+)}
 
-            {accounts.map(account => (
-              <div className="account-card" key={account.id}>
+{accountFeedback && (
+  <div className="feedback success">
+    {accountFeedback}
+  </div>
+)}
 
-                <p>Cuenta bancaria</p>
+          
+<div className="account-grid">
+  {accounts.map(account => (
+    <div className="account-card" key={account.id}>
+      <p>Cuenta bancaria</p>
 
-                <h3>{account.accountNumber}</h3>
+      <h3>{account.accountNumber}</h3>
 
-                <h2>
-                  {new Intl.NumberFormat('es-CO', {
-                    style: 'currency',
-                    currency: 'COP',
-                    maximumFractionDigits: 2,
-                  }).format(Number(account.balance))}
-                </h2>
+      <h2>
+        {new Intl.NumberFormat('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          maximumFractionDigits: 2,
+        }).format(Number(account.balance))}
+      </h2>
 
-                <span
-                  className={`account-status ${account.status.toLowerCase()}`}
-                >
-                  {account.status === 'ACTIVE' ? 'Activa' : 'Congelada'}
-                </span>
+      <span
+        className={`account-status ${account.status.toLowerCase()}`}
+      >
+        {account.status === 'ACTIVE' ? 'Activa' : 'Congelada'}
+      </span>
 
-              </div>
-            ))}
+      <div className="account-actions">
+        <button
+          type="button"
+          onClick={() => handleRefreshBalance(account.id)}
+          disabled={accountActionLoading !== null}
+        >
+          {accountActionLoading === account.id
+            ? 'Procesando...'
+            : 'Actualizar saldo'}
+        </button>
 
-          </div>
+        <button
+          type="button"
+          onClick={() => handleToggleAccountStatus(account)}
+          disabled={accountActionLoading !== null}
+        >
+          {account.status === 'ACTIVE'
+            ? 'Congelar cuenta'
+            : 'Descongelar cuenta'}
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
 
           {/* OPERACIONES FINANCIERAS */}
           <div className="operations-panel">
