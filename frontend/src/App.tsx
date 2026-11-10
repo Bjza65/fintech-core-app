@@ -21,6 +21,25 @@ interface Account {
   createdAt: string;
 }
 
+type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER';
+type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
+
+interface Transaction {
+  id: string;
+  type: TransactionType;
+  amount: number;
+  status: TransactionStatus;
+  description: string;
+  createdAt: string;
+  sourceAccountId?: string;
+  destinationAccountId?: string;
+}
+
+interface TransactionHistory {
+  accountId: string;
+  transactions: Transaction[];
+}
+
 interface ApiResponse<T> {
   status: string;
   message?: string;
@@ -106,6 +125,14 @@ function App() {
 
   const [accountFeedback, setAccountFeedback] = useState('');
   const [accountActionError, setAccountActionError] = useState('');
+
+  // ESTADOS DEL HISTORIAL
+  const [selectedHistoryAccount, setSelectedHistoryAccount] =
+    useState<string | null>(null);
+  const [transactions, setTransactions] =
+    useState<Transaction[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState('');
 
   // CONSULTAR CUENTAS DEL USUARIO
   useEffect(() => {
@@ -304,6 +331,38 @@ function App() {
     catch (err) { 
       setAccountActionError ( err instanceof Error ? err.message : 'No se pudo actualizar el estado de la cuenta.');}
       finally { setAccountActionLoading(null); }
+  };
+
+  const handleLoadHistory = async (accountId: string) => {
+  const token = localStorage.getItem('fintech_token');
+
+  if (!token) return;
+
+  setSelectedHistoryAccount(accountId);
+  setLoadingHistory(true);
+  setHistoryError('');
+  setTransactions([]);
+
+  try {
+    const result = await apiRequest<ApiResponse<TransactionHistory>>(
+      `/transactions/history/${accountId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setTransactions(result.data.transactions || []);
+  } catch (err) {
+    setHistoryError(
+      err instanceof Error
+        ? err.message
+        : 'No se pudo consultar el historial.'
+    );
+  } finally {
+    setLoadingHistory(false);
+  }
   };
 
 
@@ -652,10 +711,114 @@ function App() {
             ? 'Congelar cuenta'
             : 'Descongelar cuenta'}
         </button>
+        <button
+            type="button"
+            onClick={() => handleLoadHistory(account.id)}
+            disabled={loadingHistory}
+            >
+              {loadingHistory && selectedHistoryAccount === account.id
+                ? 'Cargando...'
+                : 'Ver movimientos'}
+              </button>
       </div>
     </div>
   ))}
 </div>
+
+
+{selectedHistoryAccount && (
+  <section className="history-panel">
+
+    <div className="history-heading">
+      <div>
+        <h2>Historial de movimientos</h2>
+        <p>
+          Cuenta: {
+            accounts.find(
+              account => account.id === selectedHistoryAccount
+            )?.accountNumber
+          }
+        </p>
+      </div>
+
+      <button
+          type="button"
+          className="close-history-button"
+          onClick={() => {
+            setSelectedHistoryAccount(null);
+            setTransactions([]);
+            setHistoryError('');
+          }}
+          aria-label="Cerrar historial"
+          >
+          ×
+        </button>
+    </div>
+
+    {loadingHistory && (
+      <p>Cargando movimientos...</p>
+    )}
+
+    {historyError && (
+      <div className="feedback error">
+        {historyError}
+      </div>
+    )}
+
+    {!loadingHistory && !historyError && transactions.length === 0 && (
+      <p>Esta cuenta todavía no tiene movimientos.</p>
+    )}
+
+    {!loadingHistory && transactions.length > 0 && (
+      <div className="transaction-list">
+        {transactions.map(transaction => {
+          const isIncoming =
+            transaction.type === 'DEPOSIT' ||
+            (
+              transaction.type === 'TRANSFER' &&
+              transaction.destinationAccountId === selectedHistoryAccount
+            );
+
+          const operationName = {
+            DEPOSIT: 'Depósito',
+            WITHDRAWAL: 'Retiro',
+            TRANSFER: 'Transferencia',
+          }[transaction.type];
+
+          return (
+            <article
+              className="transaction-item"
+              key={transaction.id}
+            >
+              <div className="transaction-info">
+                <strong>{operationName}</strong>
+                <span>{transaction.description}</span>
+                <small>
+                  {new Date(transaction.createdAt).toLocaleString('es-CO')}
+                </small>
+              </div>
+
+              <div className="transaction-value">
+                <strong className={isIncoming ? 'incoming' : 'outgoing'}>
+                  {isIncoming ? '+' : '-'}
+                  {new Intl.NumberFormat('es-CO', {
+                    style: 'currency',
+                    currency: 'COP',
+                    maximumFractionDigits: 2,
+                  }).format(transaction.amount)}
+                </strong>
+
+                <span>{transaction.status}</span>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+
+  </section>
+)}
+
 
 
           {/* OPERACIONES FINANCIERAS */}
