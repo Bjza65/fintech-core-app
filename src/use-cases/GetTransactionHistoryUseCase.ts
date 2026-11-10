@@ -7,10 +7,11 @@ export class GetTransactionHistoryUseCase {
   constructor(private readonly transactionRepository: TransactionRepository, private readonly accountRepository: AccountRepository) { }
 
   async execute(input: GetTransactionHistoryInputDTO, userId: string): Promise<GetTransactionHistoryOutputDTO> {
-    const transactions = await this.transactionRepository.findByAccountId(input.accountId);
     const account = await this.accountRepository.findById(input.accountId);
 
     if (!account || account.userid !== userId) {throw new AccountNotFoundError(input.accountId);}
+
+    const transactions = await this.transactionRepository.findByAccountId(input.accountId);
 
     return {
       accountId: input.accountId,
