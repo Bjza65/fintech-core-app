@@ -8,9 +8,9 @@ class UnfreezeAccountUseCase {
     constructor(accountRepository) {
         this.accountRepository = accountRepository;
     }
-    async execute(accountId) {
+    async execute(accountId, userId) {
         const account = await this.accountRepository.findById(accountId);
-        if (!account) {
+        if (!account || account.userid !== userId) {
             throw new FinancialErrors_1.AccountNotFoundError(accountId);
         }
         if (account.accountStatus === "ACTIVE") {

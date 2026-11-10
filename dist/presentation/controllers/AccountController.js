@@ -57,7 +57,8 @@ class AccountController {
     freezeAccount = async (req, res, next) => {
         try {
             const accountId = Array.isArray(req.params.accountId) ? req.params.accountId[0] : req.params.accountId;
-            await this.freezeAccountUseCase.execute(accountId);
+            const userId = req.user.userId;
+            await this.freezeAccountUseCase.execute(accountId, userId);
             res.status(200).json({
                 status: 'success',
                 message: 'Cuenta congelada correctamente',
@@ -70,7 +71,8 @@ class AccountController {
     unfreezeAccount = async (req, res, next) => {
         try {
             const accountId = Array.isArray(req.params.accountId) ? req.params.accountId[0] : req.params.accountId;
-            await this.unfreezeAccountUseCase.execute(accountId);
+            const userId = req.user.userId;
+            await this.unfreezeAccountUseCase.execute(accountId, userId);
             res.status(200).json({
                 status: 'success',
                 message: 'Cuenta descongelada correctamente',

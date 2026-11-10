@@ -69,13 +69,13 @@ class PrismaAccountRepository {
     async freeze(account) {
         await this.prisma.account.update({
             where: { id: account.id },
-            data: { status: 'FROZEN' },
+            data: { accountStatus: 'FROZEN' },
         });
     }
     async unfreeze(account) {
         await this.prisma.account.update({
             where: { id: account.id },
-            data: { status: 'ACTIVE' },
+            data: { accountStatus: 'ACTIVE' },
         });
     }
 }

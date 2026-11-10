@@ -5,9 +5,9 @@ import { AccountRepository } from "../domain/repositories/Repositories";
 export class UnfreezeAccountUseCase {
   constructor(private readonly accountRepository: AccountRepository) { }
 
-  async execute(accountId: string): Promise<void> {
+  async execute(accountId: string , userId: string): Promise<void> {
     const account = await this.accountRepository.findById(accountId);
-    if (!account) {
+    if (!account || account.userid !== userId) {
       throw new AccountNotFoundError(accountId);
     }
 
