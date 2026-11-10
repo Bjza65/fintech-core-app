@@ -64,7 +64,7 @@ export class TransactionController {
   getHistory = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const accountId = Array.isArray(req.params.accountId) ? req.params.accountId[0] : req.params.accountId;
-      const history = await this.getTransactionHistoryUseCase.execute({ accountId });
+      const history = await this.getTransactionHistoryUseCase.execute({ accountId }, req.user!.userId);
 
       res.status(200).json({
         status: 'success',

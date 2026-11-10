@@ -2,13 +2,20 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetTransactionHistoryUseCase = void 0;
 const Transactions_1 = require("../domain/entities/Transactions");
+const FinancialErrors_1 = require("../domain/exceptions/FinancialErrors");
 class GetTransactionHistoryUseCase {
     transactionRepository;
-    constructor(transactionRepository) {
+    accountRepository;
+    constructor(transactionRepository, accountRepository) {
         this.transactionRepository = transactionRepository;
+        this.accountRepository = accountRepository;
     }
-    async execute(input) {
+    async execute(input, userId) {
         const transactions = await this.transactionRepository.findByAccountId(input.accountId);
+        const account = await this.accountRepository.findById(input.accountId);
+        if (!account || account.userid !== userId) {
+            throw new FinancialErrors_1.AccountNotFoundError(input.accountId);
+        }
         return {
             accountId: input.accountId,
             transactions: transactions.map((transaction) => {

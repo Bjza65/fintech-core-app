@@ -73,7 +73,7 @@ const createApp = () => {
     const transferMoneyUseCase = new TransferMoneyUseCase_1.TransferMoneyUseCase(accountRepository);
     const depositUseCase = new DepositUseCase_1.DepositUseCase(accountRepository);
     const withdrawalUseCase = new WithdrawalUseCase_1.WithdrawalUseCase(accountRepository);
-    const getTransactionHistoryUseCase = new GetTransactionHistoryUseCase_1.GetTransactionHistoryUseCase(transactionRepository);
+    const getTransactionHistoryUseCase = new GetTransactionHistoryUseCase_1.GetTransactionHistoryUseCase(transactionRepository, accountRepository);
     // 5. Instanciación de Controladores y Guardias HTTP (Capa de Presentación)
     const authController = new AuthController_1.AuthController(registerUserUseCase, loginUseCase);
     const accountController = new AccountController_1.AccountController(createAccountUseCase, getUserAccountsUseCase, getBalanceUseCase, freezeAccountUseCase, unfreezeAccountUseCase);

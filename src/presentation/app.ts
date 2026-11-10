@@ -78,7 +78,7 @@ export const createApp = (): Application => {
   const transferMoneyUseCase = new TransferMoneyUseCase(accountRepository);
   const depositUseCase = new DepositUseCase(accountRepository);
   const withdrawalUseCase = new WithdrawalUseCase(accountRepository);
-  const getTransactionHistoryUseCase = new GetTransactionHistoryUseCase(transactionRepository);
+  const getTransactionHistoryUseCase = new GetTransactionHistoryUseCase(transactionRepository, accountRepository);
 
   // 5. Instanciación de Controladores y Guardias HTTP (Capa de Presentación)
   const authController = new AuthController(registerUserUseCase, loginUseCase);
